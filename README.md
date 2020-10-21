@@ -24,11 +24,11 @@ Covert RFB model
 
  Pytorch RFB
 
-![img1](https://github.com/jason9075/Ultra-Light-Fast-Generic-Face-Detector_Tensorflow-Model-Converter/blob/master/imgs/test_output_origin_rfb.jpg)
+![img1](https://github.com/jason9075/Ultra-Light-Fast-Generic-Face-Detector_Tensorflow-Model-Converter/blob/master/imgs/test_output_origin_RFB.jpg)
 
  Tensorflow RFB
 
-![img1](https://github.com/jason9075/Ultra-Light-Fast-Generic-Face-Detector_Tensorflow-Model-Converter/blob/master/imgs/test_output_rfb.jpg)
+![img1](https://github.com/jason9075/Ultra-Light-Fast-Generic-Face-Detector_Tensorflow-Model-Converter/blob/master/imgs/test_output_RFB.jpg)
  
 ##  Reference
 - [Ultra-Light-Fast-Generic-Face-Detector-1MB](https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB)
