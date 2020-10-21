@@ -3,14 +3,19 @@
  This project is base on [Ultra-Light-Fast-Generic-Face-Detector-1MB](https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB). You can use this script to converter origin model to tensorflow version.
  
 ## Run
-Covert slim model
+Covert model
 ```Python
- python3 ./convert_tensorflow.py --net_type slim
+ python3 ./convert_tensorflow.py --net_type <RFB|slim>
 ```
 
-Covert RFB model
+Inference on image
 ```Python
- python3 ./convert_tensorflow.py --net_type RFB
+ python3 ./det_image.py --net_type <RFB|slim> --img_path <path>
+```
+
+Inference on Webcam
+```Python
+ python3 ./det_webcam.py --net_type <RFB|slim>
 ```
  
 ##  Result Comparison

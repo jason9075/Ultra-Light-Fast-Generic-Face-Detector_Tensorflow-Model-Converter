@@ -10,6 +10,8 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('--net_type', default="RFB", type=str,
                     help='The network architecture ,optional: RFB (higher precision) or slim (faster)')
+parser.add_argument('--img_path', default='imgs/test_input.jpg', type=str,
+                    help='Image path for inference')
 args = parser.parse_args()
 
 
@@ -24,7 +26,7 @@ def main():
 
     model = tf.keras.models.load_model(model_path)
 
-    img = cv2.imread('imgs/test_input.jpg')
+    img = cv2.imread(args.img_path)
     h, w, _ = img.shape
     img_resize = cv2.resize(img, (320, 240))
     img_resize = cv2.cvtColor(img_resize, cv2.COLOR_BGR2RGB)
