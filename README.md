@@ -2,6 +2,12 @@
 
  This project is base on [Ultra-Light-Fast-Generic-Face-Detector-1MB](https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB). You can use this script to converter origin model to tensorflow version.
  
+ 
+## Running Environment
+- tensorflow 2.3.1
+- torch 1.6.0
+- opencv-python 4.4.0.44
+
 ## Run
 Covert model
 ```Python
