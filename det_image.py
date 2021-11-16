@@ -8,7 +8,7 @@ import numpy as np
 parser = argparse.ArgumentParser(
     description='convert model')
 
-parser.add_argument('--net_type', default="RFB", type=str,
+parser.add_argument('--net_type', default="slim", type=str,
                     help='The network architecture ,optional: RFB (higher precision) or slim (faster)')
 parser.add_argument('--img_path', default='imgs/test_input.jpg', type=str,
                     help='Image path for inference')
@@ -36,10 +36,10 @@ def main():
     results = model.predict(np.expand_dims(img_resize, axis=0))  # result=[background,face,x1,y1,x2,y2]
 
     for result in results:
-        start_x = int(result[2] * w)
-        start_y = int(result[3] * h)
-        end_x = int(result[4] * w)
-        end_y = int(result[5] * h)
+        start_x = int(result[-4] * w)
+        start_y = int(result[-3] * h)
+        end_x = int(result[-2] * w)
+        end_y = int(result[-1] * h)
 
         cv2.rectangle(img, (start_x, start_y), (end_x, end_y), (0, 255, 0), 2)
 

@@ -38,10 +38,10 @@ def main():
         results = model.predict(np.expand_dims(img, axis=0))
 
         for result in results:
-            start_x = int(result[2] * w)
-            start_y = int(result[3] * h)
-            end_x = int(result[4] * w)
-            end_y = int(result[5] * h)
+            start_x = int(result[-4] * w)
+            start_y = int(result[-3] * h)
+            end_x = int(result[-2] * w)
+            end_y = int(result[-1] * h)
 
             cv2.rectangle(origin_img, (start_x, start_y), (end_x, end_y), (0, 255, 0), 0)
 

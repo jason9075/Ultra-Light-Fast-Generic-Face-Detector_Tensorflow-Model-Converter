@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from backend.op import conv_bn, conv_dw, basic_rfb, separable_conv
-from backend.utils import post_processing
+from backend.utils import concat_result, add_post_processing
 
 conf_threshold = 0.6
 nms_iou_threshold = 0.3
@@ -15,7 +15,7 @@ feature_map_wh_list = [[40, 30], [20, 15], [10, 8], [5, 4]]  # default feature m
 min_boxes = [[10, 16, 24], [32, 48], [64, 96], [128, 192, 256]]
 
 
-def create_rfb_net(input_shape, base_channel, num_classes):
+def create_rfb_net(input_shape, base_channel, num_classes, post_processing=True):
     input_node = tf.keras.layers.Input(shape=(input_shape[0], input_shape[1], 3))
 
     net = conv_bn(input_node, base_channel, stride=2, prefix='basenet.0')  # 120x160
@@ -58,10 +58,13 @@ def create_rfb_net(input_shape, base_channel, num_classes):
     cls_3 = tf.keras.layers.Conv2D(3 * num_classes, kernel_size=3, padding='SAME',
                                    name='cls_3_convbias')(header_3)
 
-    result = post_processing([reg_0, reg_1, reg_2, reg_3],
-                             [cls_0, cls_1, cls_2, cls_3],
-                             num_classes, image_size, feature_map_wh_list, min_boxes,
-                             center_variance, size_variance)
+    result = concat_result([reg_0, reg_1, reg_2, reg_3],
+                           [cls_0, cls_1, cls_2, cls_3],
+                           num_classes, image_size, feature_map_wh_list, min_boxes,
+                           center_variance, size_variance)
+
+    if post_processing:
+        result = add_post_processing(result)
 
     model = tf.keras.Model(inputs=[input_node], outputs=[result])
     model.summary()

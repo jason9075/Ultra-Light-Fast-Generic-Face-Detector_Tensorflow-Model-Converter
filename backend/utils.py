@@ -5,29 +5,34 @@ import tensorflow as tf
 import torch
 
 
-def post_processing(reg_list, cls_list, num_classes, image_size, feature_map_wh_list, min_boxes,
-                    center_variance, size_variance,
-                    conf_threshold=0.6, nms_max_output_size=100, nms_iou_threshold=0.3, top_k=100):
+def concat_result(reg_list, cls_list, num_classes, image_size, feature_map_wh_list, min_boxes,
+                  center_variance, size_variance):
     reg_list = [tf.keras.layers.Reshape([-1, 4])(reg) for reg in reg_list]
     cls_list = [tf.keras.layers.Reshape([-1, num_classes])(cls) for cls in cls_list]
 
     reg = tf.keras.layers.Concatenate(axis=1)(reg_list)
     cls = tf.keras.layers.Concatenate(axis=1)(cls_list)
 
-    # post process
     cls = tf.keras.layers.Softmax(axis=-1)(cls)
     loc = decode_regression(reg, image_size, feature_map_wh_list, min_boxes,
                             center_variance, size_variance)
 
     result = tf.keras.layers.Concatenate(axis=-1)([cls, loc])
 
+    return result
+
+
+def add_post_processing(result, conf_threshold=0.6, nms_max_output_size=100, nms_iou_threshold=0.3,
+                        top_k=100):
     # confidence thresholding
-    mask = conf_threshold < cls[..., 1]
+    scores = tf.math.reduce_max(result[..., 1:-4], axis=-1)
+    mask = conf_threshold < scores
     result = tf.boolean_mask(tensor=result, mask=mask)
 
     # non-maximum suppression
+    scores = tf.math.reduce_max(result[..., 1:-4], axis=-1)
     mask = tf.image.non_max_suppression(boxes=result[..., -4:],
-                                        scores=result[..., 1],
+                                        scores=scores,
                                         max_output_size=nms_max_output_size,
                                         iou_threshold=nms_iou_threshold,
                                         name='non_maximum_suppresion')
@@ -35,7 +40,8 @@ def post_processing(reg_list, cls_list, num_classes, image_size, feature_map_wh_
 
     # top-k filtering
     top_k_value = tf.math.minimum(tf.constant(top_k), tf.shape(result)[0])
-    mask = tf.nn.top_k(result[..., 1], k=top_k_value, sorted=True).indices
+    scores = tf.math.reduce_max(result[..., 1:-4], axis=-1)
+    mask = tf.nn.top_k(scores, k=top_k_value, sorted=True).indices
     result = tf.gather(params=result, indices=mask, axis=0)
 
     return result
@@ -67,10 +73,13 @@ def decode_regression(reg, image_size, feature_map_w_h_list, min_boxes,
     center_xy = reg[..., :2] * center_variance * priors[..., 2:] + priors[..., :2]
     center_wh = tf.exp(reg[..., 2:] * size_variance) * priors[..., 2:]
 
+    # TODO 下面兩行會導致tflite無法執行 要再找時間修改寫法
     # center to corner
     start_xy = center_xy - center_wh / 2
     end_xy = center_xy + center_wh / 2
 
+    # TODO 下面[center_xy, center_wh] 不是應有的輸出，上面的todo修改完之後再替換
+    # loc = tf.concat([center_xy, center_wh], axis=-1)
     loc = tf.concat([start_xy, end_xy], axis=-1)
     loc = tf.clip_by_value(loc, clip_value_min=0.0, clip_value_max=1.0)
 

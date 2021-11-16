@@ -54,3 +54,6 @@ test_image/output/*
 
 mAP/*
 !mAP/.keep
+
+export_models/*
+!export_models/.keep
