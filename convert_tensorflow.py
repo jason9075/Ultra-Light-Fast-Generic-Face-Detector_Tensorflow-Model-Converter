@@ -10,6 +10,7 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('--net_type', default="RFB", type=str,
                     help='The network architecture ,optional: RFB (higher precision) or slim (faster)')
+parser.add_argument('--pytorch_model', default=None, type=str)
 args = parser.parse_args()
 
 
@@ -19,11 +20,11 @@ def main():
     num_classes = 2
 
     if args.net_type == 'slim':
-        torch_path = "pytorch_pretrained/version-slim-320.pth"
+        torch_path = args.pytorch_model or "pytorch_pretrained/version-slim-320.pth"
         mapping_table = "mapping_tables/slim_320.json"
-        model = create_slim_net(input_shape, base_channel, num_classes)
+        model = create_slim_net(input_shape, base_channel, num_classes, post_processing=False)
     elif args.net_type == 'RFB':
-        torch_path = "pytorch_pretrained/version-RFB-320.pth"
+        torch_path = args.pytorch_model or "pytorch_pretrained/version-RFB-320.pth"
         mapping_table = "mapping_tables/rfb_320.json"
         model = create_rfb_net(input_shape, base_channel, num_classes)
     else:
