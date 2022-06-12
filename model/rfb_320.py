@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 
 from backend.op import conv_bn, conv_dw, basic_rfb, separable_conv
@@ -58,12 +59,28 @@ def create_rfb_net(input_shape, base_channel, num_classes, post_processing=True)
     cls_3 = tf.keras.layers.Conv2D(3 * num_classes, kernel_size=3, padding='SAME',
                                    name='cls_3_convbias')(header_3)
 
-    result = concat_result([reg_0, reg_1, reg_2, reg_3],
-                           [cls_0, cls_1, cls_2, cls_3],
-                           num_classes, image_size, feature_map_wh_list, min_boxes,
-                           center_variance, size_variance)
+    reg_list = [reg_0, reg_1, reg_2, reg_3]
+    cls_list = [cls_0, cls_1, cls_2, cls_3]
+
+    def size(shape):
+        return np.prod([a for a in shape if a is not None])
+
+    reg_list = [tf.keras.layers.Reshape([int(size(reg.shape) / 4), 4])(reg) for reg in reg_list]
+    cls_list = [tf.keras.layers.Reshape([int(size(cls.shape) / num_classes), num_classes])(cls) for cls in cls_list]
+
+    reg = tf.keras.layers.Concatenate(axis=1)(reg_list)
+    cls = tf.keras.layers.Concatenate(axis=1)(cls_list)
+
+    cls = tf.keras.layers.Softmax(axis=-1)(cls)
+
+    result = [cls, reg]
 
     if post_processing:
+        result = concat_result([reg_0, reg_1, reg_2, reg_3],
+                            [cls_0, cls_1, cls_2, cls_3],
+                            num_classes, image_size, feature_map_wh_list, min_boxes,
+                            center_variance, size_variance)
+
         result = add_post_processing(result)
 
     model = tf.keras.Model(inputs=[input_node], outputs=[result])
