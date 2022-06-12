@@ -23,6 +23,16 @@ EDGETPU_SHARED_LIB = {
 }[platform.system()]
 
 
+def preprocess_image(img):
+    img_resize = cv2.resize(img, (320, 240))
+    img_resize = cv2.cvtColor(img_resize, cv2.COLOR_BGR2RGB)
+    img_resize = img_resize - 127.0
+    img_resize = img_resize / 128.0
+    img_resize = np.float32(np.expand_dims(img_resize, axis=0))
+
+    return img_resize
+
+
 def main():
     converter = tf.lite.TFLiteConverter.from_saved_model(args.save_dir)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
@@ -52,13 +62,7 @@ def test():
     output_details = interpreter.get_output_details()
 
     img = cv2.imread('imgs/test_input.jpg')
-    h, w, _ = img.shape
-    img_resize = cv2.resize(img, (320, 240))
-    img_resize = cv2.cvtColor(img_resize, cv2.COLOR_BGR2RGB)
-    img_resize = img_resize - 127.0
-    img_resize = img_resize / 128.0
-
-    img_resize = np.float32(np.expand_dims(img_resize, axis=0))
+    img_resize = preprocess_image(img)
 
     interpreter.set_tensor(input_details[0]['index'], img_resize)
 
