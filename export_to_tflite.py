@@ -1,15 +1,21 @@
 import platform
 import time
+import argparse
 
 import cv2
 import numpy as np
 import tensorflow as tf
 import tflite_runtime.interpreter as tflite
 
-SAVE_MODEL_DIR = 'export_models/slim/'
-OUTPUT_TF_FILE_NAME = 'export_models/slim.tflite'
+parser = argparse.ArgumentParser()
 
-USE_EDGE_TPU = False
+parser.add_argument('--save_dir', default="export_models/slim/", type=str,
+                    help='Folder of exported save model')
+parser.add_argument('--out', default="export_models/model.tflite", type=str)
+parser.add_argument('--edge_tpu', action="store_true")
+args = parser.parse_args()
+
+args.edge_tpu = False
 EDGETPU_SHARED_LIB = {
     'Linux': 'libedgetpu.so.1',
     'Darwin': 'libedgetpu.1.dylib',
@@ -18,22 +24,22 @@ EDGETPU_SHARED_LIB = {
 
 
 def main():
-    converter = tf.lite.TFLiteConverter.from_saved_model(SAVE_MODEL_DIR)
+    converter = tf.lite.TFLiteConverter.from_saved_model(args.save_dir)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
     converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS,
                                            tf.lite.OpsSet.SELECT_TF_OPS]
 
     tflite_model = converter.convert()
-    open(OUTPUT_TF_FILE_NAME, "wb").write(tflite_model)
+    open(args.out, "wb").write(tflite_model)
 
 
 def test():
-    if USE_EDGE_TPU:
-        interpreter = tflite.Interpreter(model_path=OUTPUT_TF_FILE_NAME,
+    if args.edge_tpu:
+        interpreter = tflite.Interpreter(model_path=args.out,
                                          experimental_delegates=[
                                              tflite.load_delegate(EDGETPU_SHARED_LIB)])
     else:
-        interpreter = tf.lite.Interpreter(model_path=OUTPUT_TF_FILE_NAME)
+        interpreter = tf.lite.Interpreter(model_path=args.out)
 
     input_type = interpreter.get_input_details()[0]['dtype']
     print('input: ', input_type)
