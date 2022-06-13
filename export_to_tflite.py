@@ -50,8 +50,6 @@ def representative_dataset_generator():
         img = cv2.imread(str(p))
         i += 1
         yield [preprocess_image(img)]
-    
-
 
 
 def main():
